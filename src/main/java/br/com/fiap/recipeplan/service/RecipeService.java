@@ -104,15 +104,6 @@ public class RecipeService {
                         trimmedLine.toLowerCase().contains("instruções")) {
                     break;
                 }
-
-                Matcher matcher = ingredientPattern.matcher(trimmedLine);
-                if (matcher.matches() && !trimmedLine.isEmpty()) {
-                    String ingredientText = matcher.group(1);
-                    Ingredient ingredient = parseIngredient(ingredientText);
-                    if (ingredient != null) {
-                        recipe.getIngredients().add(ingredient);
-                    }
-                }
             }
         }
 
@@ -124,9 +115,7 @@ public class RecipeService {
         String[] lines = content.split("\n");
         List<String> cleanedLines = new ArrayList<>();
         boolean skipEmptyLines = false;
-        boolean foundMainTitle = false;
         boolean foundIngredients = false;
-        boolean foundInstructions = false;
 
         for (String line : lines) {
             String trimmedLine = line.trim();
@@ -136,17 +125,14 @@ public class RecipeService {
             }
 
             if (trimmedLine.startsWith("# ")) {
-                foundMainTitle = true;
             } else if (trimmedLine.equalsIgnoreCase("## Ingredientes") ||
                     trimmedLine.equalsIgnoreCase("# Ingredientes") ||
                     trimmedLine.toLowerCase().contains("ingredientes")) {
                 foundIngredients = true;
-                foundInstructions = false;
             } else if (trimmedLine.equalsIgnoreCase("## Modo de Preparo") ||
                     trimmedLine.equalsIgnoreCase("# Modo de Preparo") ||
                     trimmedLine.toLowerCase().contains("modo de preparo") ||
                     trimmedLine.toLowerCase().contains("instruções")) {
-                foundInstructions = true;
                 foundIngredients = false;
             }
 

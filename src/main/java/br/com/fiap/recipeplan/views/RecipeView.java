@@ -6,6 +6,9 @@ import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.listbox.MultiSelectListBox;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.html.Div;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 
 public class RecipeView extends VerticalLayout {
     public RecipeView(Recipe recipe) {
@@ -17,19 +20,44 @@ public class RecipeView extends VerticalLayout {
 
         add(title, description);
 
-        var ingredientsTitle = new H3("Ingredientes");
-        add(ingredientsTitle);
+        if (!recipe.getIngredients().isEmpty()) {
+            var ingredientsTitle = new H3("Ingredientes");
+            add(ingredientsTitle);
 
-        var ingredientsList = new MultiSelectListBox<String>();
-        ingredientsList.setItems(recipe.getIngredients().stream().map(
-                i -> i.getQuantity() + " " + i.getUnit() + " de " + i.getName()
-        ).toList());
-        
-        add(ingredientsList);
+            var ingredientsList = new MultiSelectListBox<String>();
+            ingredientsList.setItems(recipe.getIngredients().stream()
+                    .map(i -> {
+                        if (i.getQuantity() != null && !i.getQuantity().isEmpty() &&
+                                i.getUnit() != null && !i.getUnit().isEmpty()) {
+                            return i.getQuantity() + " " + i.getUnit() + " de " + i.getName();
+                        } else {
+                            return i.getName();
+                        }
+                    })
+                    .toList());
 
-        var instructionsTitle = new com.vaadin.flow.component.html.H3("Instruções");
-        var instructions = new com.vaadin.flow.component.html.Paragraph(recipe.getInstructions());
+            add(ingredientsList);
+        }
 
-        add(instructionsTitle, instructions);
+        var instructionsTitle = new H3("Instruções");
+        add(instructionsTitle);
+
+        String htmlContent = convertMarkdownToHtml(recipe.getInstructions());
+        Div instructionsDiv = new Div();
+        instructionsDiv.getElement().setProperty("innerHTML", htmlContent);
+        instructionsDiv.getStyle().set("white-space", "pre-wrap");
+
+        add(instructionsDiv);
+    }
+
+    private String convertMarkdownToHtml(String markdown) {
+        try {
+            Parser parser = Parser.builder().build();
+            org.commonmark.node.Node document = parser.parse(markdown);
+            HtmlRenderer renderer = HtmlRenderer.builder().build();
+            return renderer.render(document);
+        } catch (Exception e) {
+            return markdown.replace("\n", "<br>");
+        }
     }
 }

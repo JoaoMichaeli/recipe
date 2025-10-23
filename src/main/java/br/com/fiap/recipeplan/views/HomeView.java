@@ -30,8 +30,17 @@ public class HomeView extends VerticalLayout {
 
     private void onSubmit(MessageInput.SubmitEvent event) {
         String userPrompt = event.getValue();
-        Recipe recipe = recipeService.generateRecipe(userPrompt);
-        showRecipe(recipe);
+
+        responsePanel.removeAll();
+        responsePanel.add(new Paragraph("Gerando receita para: " + userPrompt + "..."));
+
+        try {
+            Recipe recipe = recipeService.generateRecipe(userPrompt);
+            showRecipe(recipe);
+        } catch (Exception e) {
+            responsePanel.removeAll();
+            responsePanel.add(new Paragraph("Erro ao gerar receita: " + e.getMessage()));
+        }
     }
 
     private void showRecipe(Recipe recipe) {
